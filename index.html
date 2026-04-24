@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carbon Footprint Calculator — Indian Coal Mines</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sage: #5C7A6B;
+  --sage-light: #8BA898;
+  --sage-dark: #3D5449;
+  --moss: #3E5C3A;
+  --cream: #F5F0E8;
+  --cream-dark: #EDE5D6;
+  --warm-white: #FAFAF7;
+  --coal: #1C1C1A;
+  --coal-mid: #2E2E2B;
+  --amber: #C4793A;
+  --amber-light: #E8A96B;
+  --red: #B84444;
+  --red-light: #D4706F;
+  --text-primary: #1C1C1A;
+  --text-secondary: #5A5A55;
+  --text-muted: #9A9A92;
+  --border: rgba(92,122,107,0.18);
+  --border-strong: rgba(92,122,107,0.35);
+  --shadow-sm: 0 2px 12px rgba(60,80,65,0.08);
+  --shadow-md: 0 8px 32px rgba(60,80,65,0.12);
+  --shadow-lg: 0 20px 60px rgba(60,80,65,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--warm-white);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Background texture ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(92,122,107,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 80%, rgba(196,121,58,0.05) 0%, transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='%235C7A6B' fill-opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page-wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* ── Header ── */
+header {
+  padding: 48px 0 36px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 40px;
+}
+
+.header-left { flex: 1; }
+
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(92,122,107,0.12);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sage-dark);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.header-badge .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--sage);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 400;
+  color: var(--coal);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+h1 em {
+  font-style: italic;
+  color: var(--sage);
+}
+
+.header-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 10px;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+.header-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.stat-pill {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  text-align: right;
+}
+
+.stat-pill .val { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 500; color: var(--coal); }
+.stat-pill .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 1px; }
+
+/* ── Tab nav ── */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 32px;
+  width: fit-content;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover { color: var(--text-secondary); background: rgba(92,122,107,0.06); }
+
+.tab-btn.active {
+  background: white;
+  color: var(--sage-dark);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-btn svg { opacity: 0.7; }
+.tab-btn.active svg { opacity: 1; }
+
+/* ── Cards ── */
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--coal);
+  margin-bottom: 4px;
+}
+
+.card-sub { font-size: 12.5px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+
+/* ── Form elements ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+.field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.field-icon {
+  width: 16px; height: 16px;
+  background: rgba(92,122,107,0.12);
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+}
+
+.input-wrap { position: relative; }
+
+.input-wrap input,
+.input-wrap select {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all 0.18s ease;
+  appearance: none;
+  outline: none;
+}
+
+.input-wrap input:focus,
+.input-wrap select:focus {
+  border-color: var(--sage);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(92,122,107,0.1);
+}
+
+.input-wrap input:hover,
+.input-wrap select:hover {
+  border-color: var(--sage-light);
+}
+
+.input-unit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  pointer-events: none;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+/* ── Slider ── */
+.slider-field { margin-bottom: 4px; }
+.slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.slider-header label { font-size: 12px; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.04em; text-transform: uppercase; }
+.slider-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--sage-dark); background: rgba(92,122,107,0.1); padding: 2px 8px; border-radius: 6px; }
+
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, var(--sage) 0%, var(--sage) var(--pct, 50%), var(--cream-dark) var(--pct, 50%), var(--cream-dark) 100%);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2.5px solid var(--sage);
+  box-shadow: 0 2px 8px rgba(92,122,107,0.25);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 14px rgba(92,122,107,0.35);
+}
+
+/* ── Section divider ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 20px;
+}
+
+.section-divider span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Calculate button ── */
+.calc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  background: var(--sage-dark);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.calc-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+}
+
+.calc-btn:hover { background: var(--moss); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(61,84,73,0.35); }
+.calc-btn:active { transform: translateY(0); }
+
+/* ── Results panel ── */
+#results-panel {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+#results-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.result-hero {
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: all 0.4s ease;
+}
+
+.result-hero.good { background: linear-gradient(135deg, #f0f7ec 0%, #e4f0da 100%); border-color: rgba(99,153,34,0.25); }
+.result-hero.med { background: linear-gradient(135deg, #fdf5ea 0%, #f8e8d0 100%); border-color: rgba(196,121,58,0.25); }
+.result-hero.bad { background: linear-gradient(135deg, #fdf0f0 0%, #f8dede 100%); border-color: rgba(184,68,68,0.25); }
+
+.result-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  opacity: 0.08;
+  transition: all 0.4s ease;
+}
+
+.result-hero.good::before { background: var(--moss); }
+.result-hero.med::before { background: var(--amber); }
+.result-hero.bad::before { background: var(--red); }
+
+.result-hero-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+.result-number-block {}
+.result-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+.result-hero.good .result-label { color: #3b6d11; }
+.result-hero.med .result-label { color: #7a4e18; }
+.result-hero.bad .result-label { color: #8b2a2a; }
+
+.result-number {
+  font-family: 'DM Serif Display', serif;
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  transition: all 0.3s ease;
+}
+
+.result-hero.good .result-number { color: #274e0e; }
+.result-hero.med .result-number { color: #5c3510; }
+.result-hero.bad .result-number { color: #6b1e1e; }
+
+.result-unit { font-size: 14px; opacity: 0.7; margin-top: 4px; }
+
+.result-badges { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+
+.result-badge {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: right;
+}
+
+.result-hero.good .result-badge { background: rgba(99,153,34,0.12); color: #3b6d11; }
+.result-hero.med .result-badge { background: rgba(196,121,58,0.12); color: #7a4e18; }
+.result-hero.bad .result-badge { background: rgba(184,68,68,0.12); color: #8b2a2a; }
+
+.result-badge .badge-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500; display: block; }
+
+/* ── Donut chart ── */
+.donut-section { display: flex; gap: 32px; align-items: center; padding: 24px; background: var(--cream); border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+
+.donut-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+.donut-wrap svg { transform: rotate(-90deg); }
+.donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.donut-center .dc-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500; color: var(--coal); }
+.donut-center .dc-lbl { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 2px; }
+
+.donut-legend { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 10px; }
+.legend-row { display: flex; align-items: center; gap: 10px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.legend-name { font-size: 12px; color: var(--text-secondary); flex: 1; }
+.legend-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text-primary); }
+.legend-pct { font-size: 11px; color: var(--text-muted); width: 32px; text-align: right; }
+
+/* ── Bar chart ── */
+.bar-section { display: flex; flex-direction: column; gap: 10px; }
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 70px;
+  align-items: center;
+  gap: 12px;
+}
+
+.bar-name { font-size: 12.5px; color: var(--text-secondary); }
+.bar-track {
+  height: 8px;
+  background: var(--cream-dark);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.bar-fill { height: 100%; border-radius: 6px; transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1); width: 0%; }
+.bar-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; color: var(--text-primary); text-align: right; }
+
+/* ── Metrics grid ── */
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+
+.metric-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover { border-color: var(--sage-light); box-shadow: var(--shadow-sm); }
+
+.metric-card .m-lbl { font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+.metric-card .m-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; color: var(--coal); }
+.metric-card .m-unit { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.metric-card .m-delta { font-size: 11px; margin-top: 6px; font-weight: 500; }
+.metric-card .m-delta.pos { color: var(--red); }
+.metric-card .m-delta.neg { color: #3b6d11; }
+
+/* ── Pathways ── */
+.pathways-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.pathway-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+.pathway-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+  background: var(--sage);
+  border-radius: 3px 0 0 3px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.pathway-card:hover { border-color: var(--sage-light); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+.pathway-card:hover::before { opacity: 1; }
+
+.pw-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.pw-icon-wrap {
+  width: 36px; height: 36px;
+  background: rgba(92,122,107,0.1);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.pw-title { font-size: 14px; font-weight: 600; color: var(--coal); line-height: 1.3; }
+.pw-org { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.pw-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px; }
+.pw-save {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(92,122,107,0.09);
+  border: 1px solid rgba(92,122,107,0.2);
+  color: var(--sage-dark);
+  font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 6px;
+}
+.pw-save.amber { background: rgba(196,121,58,0.09); border-color: rgba(196,121,58,0.2); color: #7a4e18; }
+
+/* ── Benchmark tab ── */
+.bench-table { width: 100%; border-collapse: collapse; }
+.bench-table thead th {
+  text-align: left; padding: 10px 14px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1.5px solid var(--border);
+}
+.bench-table tbody td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.bench-table tbody tr:last-child td { border-bottom: none; }
+.bench-table tbody tr:hover td { background: var(--cream); }
+
+.status-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+}
+.status-badge.good { background: rgba(99,153,34,0.1); color: #3b6d11; }
+.status-badge.med { background: rgba(196,121,58,0.1); color: #7a4e18; }
+.status-badge.bad { background: rgba(184,68,68,0.1); color: #8b2a2a; }
+
+.factor-row {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.factor-row:last-child { border-bottom: none; }
+.factor-icon {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.factor-title { font-size: 13px; font-weight: 600; color: var(--coal); }
+.factor-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--sage-dark); font-weight: 500; }
+.factor-source { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Ring gauge ── */
+.ring-svg { overflow: visible; }
+
+/* ── Tooltip ── */
+.tooltip-wrap { position: relative; }
+.tooltip-trigger { cursor: help; border-bottom: 1px dotted var(--text-muted); }
+.tooltip-box {
+  display: none;
+  position: absolute; bottom: 100%; left: 0; margin-bottom: 6px; z-index: 100;
+  background: var(--coal);
+  color: white;
+  font-size: 11.5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  width: 200px;
+  line-height: 1.5;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+}
+.tooltip-wrap:hover .tooltip-box { display: block; }
+
+/* ── Timeline progress ── */
+.timeline { display: flex; flex-direction: column; gap: 0; position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 9px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
+.timeline-item { position: relative; padding: 0 0 24px; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-dot { position: absolute; left: -28px; top: 3px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px var(--sage); background: var(--sage); display: flex; align-items: center; justify-content: center; }
+.timeline-dot.outline { background: white; }
+.timeline-year { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; color: var(--sage-dark); margin-bottom: 3px; }
+.timeline-title { font-size: 13px; font-weight: 600; color: var(--coal); }
+.timeline-desc { font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.5; }
+
+/* ── Footer ── */
+footer {
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+footer p { font-size: 12px; color: var(--text-muted); }
+.footer-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.footer-tag {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 11px; color: var(--text-muted);
+}
+
+/* ── Animations ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
+
+.fade-in { animation: fadeUp 0.4s ease both; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .pathways-grid { grid-template-columns: 1fr; }
+  .donut-section { flex-direction: column; }
+  header { flex-direction: column; align-items: flex-start; }
+  .tab-nav { overflow-x: auto; width: 100%; }
+  .bar-row { grid-template-columns: 100px 1fr 60px; }
+}
+
+@media (max-width: 480px) {
+  .metrics-grid { grid-template-columns: 1fr; }
+  .result-hero-inner { flex-direction: column; }
+}
+
+/* ── Number animation ── */
+.num-animate { transition: all 0.3s ease; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <div class="header-badge">
+      <span class="dot"></span>
+      IPCC 2006 · MoEFCC · CEA India
+    </div>
+    <h1>Carbon Footprint<br><em>Calculator</em> for Coal Mines</h1>
+    <p class="header-meta">Real emission factors for Indian coal operations — opencast & underground.<br>No backend required. All calculations run in your browser.</p>
+  </div>
+  <div class="header-stats">
+    <div class="stat-pill">
+      <div class="val" id="hdr-total">—</div>
+      <div class="lbl">t CO₂e today</div>
+    </div>
+    <div class="stat-pill">
+      <div class="val" id="hdr-intensity">—</div>
+      <div class="lbl">kg CO₂ / tonne</div>
+    </div>
+  </div>
+</header>
+
+<!-- Tab nav -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('calculator')">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M4 7h6M7 4v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Calculator
+  </button>
+  <button class="tab-btn" onclick="switchTab('pathways')">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 12 L5 7 L8 9 L12 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Reduction Pathways
+  </button>
+  <button class="tab-btn" onclick="switchTab('benchmarks')">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M7 4v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Benchmarks
+  </button>
+  <button class="tab-btn" onclick="switchTab('roadmap')">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 11V3m0 0 4 3-4 3M12 3v8m0 0-4-3 4-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Net Zero Roadmap
+  </button>
+</nav>
+
+<!-- ══════════ TAB: CALCULATOR ══════════ -->
+<div id="tab-calculator" class="tab-content">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+    <!-- Left: Inputs -->
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">Mine Configuration</div>
+        <div class="card-sub">Set your mine type and operational parameters</div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label>Mine type</label>
+            <div class="input-wrap">
+              <select id="mineType" onchange="calculate()">
+                <option value="opencast">Opencast</option>
+                <option value="underground">Underground</option>
+              </select>
+              <div class="select-arrow">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Coal grade</label>
+            <div class="input-wrap">
+              <select id="coalGrade" onchange="calculate()">
+                <option value="1.15">Grade A — high calorific</option>
+                <option value="1.0" selected>Grade B — standard</option>
+                <option value="0.88">Grade C</option>
+                <option value="0.75">Grade D — low calorific</option>
+              </select>
+              <div class="select-arrow">
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"><span>Excavation</span></div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label>Coal production</label>
+            <div class="input-wrap">
+              <input type="number" id="excavation" value="500" min="0" oninput="calculate()">
+              <span class="input-unit">t/day</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Overburden removed</label>
+            <div class="input-wrap">
+              <input type="number" id="overburden" value="1500" min="0" oninput="calculate()">
+              <span class="input-unit">m³/day</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"><span>Transport</span></div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label>Distance per trip</label>
+            <div class="input-wrap">
+              <input type="number" id="transport" value="80" min="0" oninput="calculate()">
+              <span class="input-unit">km/day</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Truck fleet size</label>
+            <div class="input-wrap">
+              <input type="number" id="trucks" value="12" min="0" oninput="calculate()">
+              <span class="input-unit">trucks</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider"><span>Energy</span></div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label>Heavy equipment</label>
+            <div class="input-wrap">
+              <input type="number" id="equipment" value="16" min="0" max="24" oninput="calculate()">
+              <span class="input-unit">hrs/day</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Diesel generators</label>
+            <div class="input-wrap">
+              <input type="number" id="generators" value="4" min="0" oninput="calculate()">
+              <span class="input-unit">units</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-header">
+            <label>Grid electricity</label>
+            <span class="slider-val" id="elec-lbl">2500 kWh/day</span>
+          </div>
+          <input type="range" id="electricity" min="0" max="10000" step="50" value="2500"
+            oninput="updateSlider(this,'elec-lbl', v => v + ' kWh/day'); calculate()">
+        </div>
+
+        <button class="calc-btn" onclick="calculate()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          Calculate Emissions
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Results -->
+    <div>
+      <div id="results-panel">
+
+        <!-- Hero result -->
+        <div class="result-hero good" id="result-hero" style="margin-bottom:16px;">
+          <div class="result-hero-inner">
+            <div class="result-number-block">
+              <div class="result-label">Daily CO₂ Equivalent</div>
+              <div class="result-number" id="result-main">—</div>
+              <div class="result-unit">tonnes CO₂e per day</div>
+            </div>
+            <div class="result-badges">
+              <div class="result-badge">
+                <span class="badge-val" id="badge-annual">—</span>
+                kt CO₂e / year
+              </div>
+              <div class="result-badge">
+                <span class="badge-val" id="badge-intensity">—</span>
+                kg CO₂ / tonne coal
+              </div>
+              <div class="result-badge" id="badge-rating">
+                ● Good performance
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics-grid" style="margin-bottom:16px;">
+          <div class="metric-card">
+            <div class="m-lbl">Transport</div>
+            <div class="m-val" id="m-transport">—</div>
+            <div class="m-unit">t CO₂e/day</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-lbl">Equipment</div>
+            <div class="m-val" id="m-equip">—</div>
+            <div class="m-unit">t CO₂e/day</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-lbl">Electricity</div>
+            <div class="m-val" id="m-elec">—</div>
+            <div class="m-unit">t CO₂e/day</div>
+          </div>
+          <div class="metric-card">
+            <div class="m-lbl">Methane</div>
+            <div class="m-val" id="m-ch4">—</div>
+            <div class="m-unit">t CO₂e/day</div>
+          </div>
+        </div>
+
+        <!-- Donut + bars -->
+        <div class="card">
+          <div class="card-title" style="font-size:15px;margin-bottom:16px;">Emission source breakdown</div>
+
+          <div class="donut-section">
+            <div class="donut-wrap">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="54" fill="none" stroke="#ede5d6" stroke-width="16"/>
+                <circle class="donut-arc" id="arc-transport" cx="70" cy="70" r="54" fill="none" stroke="#d85a30" stroke-width="16" stroke-linecap="butt" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+                <circle class="donut-arc" id="arc-equip" cx="70" cy="70" r="54" fill="none" stroke="#c4793a" stroke-width="16" stroke-linecap="butt" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+                <circle class="donut-arc" id="arc-elec" cx="70" cy="70" r="54" fill="none" stroke="#185fa5" stroke-width="16" stroke-linecap="butt" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+                <circle class="donut-arc" id="arc-gen" cx="70" cy="70" r="54" fill="none" stroke="#534ab7" stroke-width="16" stroke-linecap="butt" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+                <circle class="donut-arc" id="arc-ch4" cx="70" cy="70" r="54" fill="none" stroke="#1d9e75" stroke-width="16" stroke-linecap="butt" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+                <circle class="donut-arc" id="arc-blast" cx="70" cy="70" r="54" fill="none" stroke="#993c1d" stroke-width="16" stroke-linecap="butt" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+              </svg>
+              <div class="donut-center">
+                <div class="dc-val" id="donut-total">0</div>
+                <div class="dc-lbl">t CO₂e<br>/day</div>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="legend-row"><div class="legend-dot" style="background:#d85a30"></div><div class="legend-name">Transportation</div><div class="legend-val" id="lv-transport">—</div><div class="legend-pct" id="lp-transport">—</div></div>
+              <div class="legend-row"><div class="legend-dot" style="background:#c4793a"></div><div class="legend-name">Heavy equipment</div><div class="legend-val" id="lv-equip">—</div><div class="legend-pct" id="lp-equip">—</div></div>
+              <div class="legend-row"><div class="legend-dot" style="background:#185fa5"></div><div class="legend-name">Grid electricity</div><div class="legend-val" id="lv-elec">—</div><div class="legend-pct" id="lp-elec">—</div></div>
+              <div class="legend-row"><div class="legend-dot" style="background:#534ab7"></div><div class="legend-name">Diesel gensets</div><div class="legend-val" id="lv-gen">—</div><div class="legend-pct" id="lp-gen">—</div></div>
+              <div class="legend-row"><div class="legend-dot" style="background:#1d9e75"></div><div class="legend-name">Fugitive CH₄</div><div class="legend-val" id="lv-ch4">—</div><div class="legend-pct" id="lp-ch4">—</div></div>
+              <div class="legend-row"><div class="legend-dot" style="background:#993c1d"></div><div class="legend-name">Blasting</div><div class="legend-val" id="lv-blast">—</div><div class="legend-pct" id="lp-blast">—</div></div>
+            </div>
+          </div>
+
+          <div class="bar-section" id="bar-section">
+            <div class="bar-row"><div class="bar-name">Transportation</div><div class="bar-track"><div class="bar-fill" id="bar-transport" style="background:#d85a30"></div></div><div class="bar-val" id="bv-transport">—</div></div>
+            <div class="bar-row"><div class="bar-name">Heavy equipment</div><div class="bar-track"><div class="bar-fill" id="bar-equip" style="background:#c4793a"></div></div><div class="bar-val" id="bv-equip">—</div></div>
+            <div class="bar-row"><div class="bar-name">Grid electricity</div><div class="bar-track"><div class="bar-fill" id="bar-elec" style="background:#185fa5"></div></div><div class="bar-val" id="bv-elec">—</div></div>
+            <div class="bar-row"><div class="bar-name">Diesel gensets</div><div class="bar-track"><div class="bar-fill" id="bar-gen" style="background:#534ab7"></div></div><div class="bar-val" id="bv-gen">—</div></div>
+            <div class="bar-row"><div class="bar-name">Fugitive methane</div><div class="bar-track"><div class="bar-fill" id="bar-ch4" style="background:#1d9e75"></div></div><div class="bar-val" id="bv-ch4">—</div></div>
+            <div class="bar-row"><div class="bar-name">Blasting</div><div class="bar-track"><div class="bar-fill" id="bar-blast" style="background:#993c1d"></div></div><div class="bar-val" id="bv-blast">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Placeholder before calculation -->
+      <div id="placeholder" class="card" style="text-align:center;padding:60px 24px;">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin:0 auto 16px;display:block;opacity:0.25"><circle cx="24" cy="24" r="20" stroke="#5C7A6B" stroke-width="2"/><path d="M24 14v10l6 4" stroke="#5C7A6B" stroke-width="2" stroke-linecap="round"/></svg>
+        <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--text-secondary);margin-bottom:8px;">Enter mine parameters</div>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">Fill in the operational inputs on the left and click <strong>Calculate Emissions</strong> to see your mine's carbon footprint breakdown.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ TAB: PATHWAYS ══════════ -->
+<div id="tab-pathways" class="tab-content" style="display:none;">
+  <div class="card" style="margin-bottom:20px;">
+    <div class="card-title">Carbon reduction pathways for Indian coal mines</div>
+    <div class="card-sub">Proven strategies with estimated reduction potential based on CIL, SCCL and international case studies</div>
+    <div class="pathways-grid">
+      <div class="pathway-card">
+        <div class="pw-header">
+          <div class="pw-icon-wrap">⚡</div>
+          <div><div class="pw-title">Electric & trolley-assist haulage</div><div class="pw-org">NMDC Donimalai pilot · Hindalco case</div></div>
+        </div>
+        <p class="pw-desc">Replace diesel haul trucks with battery-electric or overhead trolley-assist systems. Cuts per-km fuel burn by 75%. Hindalco's Aditya mine reported 30% transport emission reduction after partial fleet electrification.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="pw-save">↓ 20–35% transport</span>
+          <span class="pw-save amber">Payback: 5–8 years</span>
+        </div>
+      </div>
+      <div class="pathway-card">
+        <div class="pw-header">
+          <div class="pw-icon-wrap">☀️</div>
+          <div><div class="pw-title">On-site solar + energy storage</div><div class="pw-org">SCCL Manuguru · MCL Talcher</div></div>
+        </div>
+        <p class="pw-desc">Install floating or ground-mounted solar on overburden dumps and mine periphery. Displace diesel gensets and peak grid draw. SCCL committed 400 MW solar by 2025 across Singareni operations.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="pw-save">↓ 15–25% electricity</span>
+          <span class="pw-save amber">Payback: 3–5 years</span>
+        </div>
+      </div>
+      <div class="pathway-card">
+        <div class="pw-header">
+          <div class="pw-icon-wrap">🔥</div>
+          <div><div class="pw-title">Coal mine methane (CMM) capture</div><div class="pw-org">CMPDI mandate · BCCL Jharia</div></div>
+        </div>
+        <p class="pw-desc">Pre-drainage and post-drainage methane capture for power generation or flaring. Mandatory for underground mines deeper than 300m under MoEFCC Environment Clearance conditions. GWP of CH₄ is 28× CO₂.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="pw-save">↓ 60–90% fugitive CH₄</span>
+          <span class="pw-save amber">Revenue from gas sales</span>
+        </div>
+      </div>
+      <div class="pathway-card">
+        <div class="pw-header">
+          <div class="pw-icon-wrap">🌳</div>
+          <div><div class="pw-title">Mine reclamation & afforestation</div><div class="pw-org">MoEFCC EC condition · CAMPA</div></div>
+        </div>
+        <p class="pw-desc">Concurrent reclamation of worked-out voids with dense plantations on OB dumps. Dense tropical plantation sequesters 5–12 t CO₂/ha/year. Mandatory under Compensatory Afforestation (CAMPA) fund rules.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="pw-save">↑ 5–12 t CO₂/ha/yr</span>
+          <span class="pw-save amber">Regulatory compliance</span>
+        </div>
+      </div>
+      <div class="pathway-card">
+        <div class="pw-header">
+          <div class="pw-icon-wrap">🔧</div>
+          <div><div class="pw-title">Equipment idle-reduction & predictive maintenance</div><div class="pw-org">CIL fleet management program</div></div>
+        </div>
+        <p class="pw-desc">GPS-based idle monitoring, automated engine shut-off, and route optimisation for haul trucks. Komatsu Frontrunner AHS trials in Indian mines show 8–12% fuel reduction with no production loss.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="pw-save">↓ 8–12% fuel burn</span>
+          <span class="pw-save amber">Payback: &lt;2 years</span>
+        </div>
+      </div>
+      <div class="pathway-card">
+        <div class="pw-header">
+          <div class="pw-icon-wrap">📊</div>
+          <div><div class="pw-title">BEE PAT scheme + ESCerts trading</div><div class="pw-org">Bureau of Energy Efficiency</div></div>
+        </div>
+        <p class="pw-desc">Designate Consumers (DCs) under PAT cycle earn Energy Savings Certificates tradeable on power exchanges. Coal mines consuming >30,000 toe/year are eligible. Monetise energy efficiency gains at ₹3,000–8,000/ESCert.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="pw-save">↓ 5–10% energy</span>
+          <span class="pw-save amber">Revenue from ESCerts</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TAB: BENCHMARKS ══════════ -->
+<div id="tab-benchmarks" class="tab-content" style="display:none;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">Sector performance benchmarks</div>
+        <div class="card-sub">Emission intensity by mine type — kg CO₂e per tonne of coal</div>
+        <table class="bench-table">
+          <thead><tr><th>Category</th><th>Range</th><th>Status</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Opencast — best</td><td style="font-family:'JetBrains Mono',monospace;">&lt; 10 kg/t</td><td><span class="status-badge good">Low</span></td><td>MCL Hingula</td></tr>
+            <tr><td>Opencast — typical</td><td style="font-family:'JetBrains Mono',monospace;">10–22 kg/t</td><td><span class="status-badge med">Average</span></td><td>CIL average</td></tr>
+            <tr><td>Opencast — poor</td><td style="font-family:'JetBrains Mono',monospace;">&gt; 22 kg/t</td><td><span class="status-badge bad">High</span></td><td>Old WCL mines</td></tr>
+            <tr><td>Underground — best</td><td style="font-family:'JetBrains Mono',monospace;">&lt; 40 kg/t</td><td><span class="status-badge good">Low</span></td><td>BCCL Lodna</td></tr>
+            <tr><td>Underground — typical</td><td style="font-family:'JetBrains Mono',monospace;">40–80 kg/t</td><td><span class="status-badge med">Average</span></td><td>ECL average</td></tr>
+            <tr><td>Underground — poor</td><td style="font-family:'JetBrains Mono',monospace;">&gt; 80 kg/t</td><td><span class="status-badge bad">High</span></td><td>Old BCCL legacy</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Emission factors used</div>
+        <div class="card-sub">Scientific references for all calculations</div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(24,95,165,0.1);">⚡</div>
+          <div>
+            <div class="factor-title">Indian grid electricity</div>
+            <div class="factor-val">0.82 kg CO₂ / kWh</div>
+            <div class="factor-source">CEA CO₂ baseline database v18 (2023–24)</div>
+          </div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(196,121,58,0.1);">🛢️</div>
+          <div>
+            <div class="factor-title">Diesel combustion</div>
+            <div class="factor-val">2.68 kg CO₂ / litre</div>
+            <div class="factor-source">IPCC 2006 GL Vol. 2, Table 2.2</div>
+          </div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(29,158,117,0.1);">💨</div>
+          <div>
+            <div class="factor-title">Fugitive CH₄ — opencast</div>
+            <div class="factor-val">0.3 m³ / tonne (GWP 28×)</div>
+            <div class="factor-source">GSI Gondwana seam default · CMPDI survey</div>
+          </div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(29,158,117,0.1);">🪨</div>
+          <div>
+            <div class="factor-title">Fugitive CH₄ — underground</div>
+            <div class="factor-val">7 m³ / tonne average (range 4–10)</div>
+            <div class="factor-source">CMPDI regional survey 2019 · BCCL data</div>
+          </div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(153,60,29,0.1);">💥</div>
+          <div>
+            <div class="factor-title">Blasting — ANFO explosive</div>
+            <div class="factor-val">0.27 kg CO₂e / kg explosive</div>
+            <div class="factor-source">IPCC 2006 GL Vol. 2 · Orica life-cycle data</div>
+          </div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(92,122,107,0.1);">🏗️</div>
+          <div>
+            <div class="factor-title">Excavator/dozer fuel burn</div>
+            <div class="factor-val">35 L / hour per unit</div>
+            <div class="factor-source">CAT 390F / Liebherr R 9400 spec sheets</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TAB: NET ZERO ROADMAP ══════════ -->
+<div id="tab-roadmap" class="tab-content" style="display:none;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div class="card">
+      <div class="card-title">India coal sector net zero timeline</div>
+      <div class="card-sub">Key policy milestones and targets</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-year">2023</div>
+          <div class="timeline-title">CIL 100 MW solar target achieved</div>
+          <div class="timeline-desc">Coal India Limited met its first renewable energy milestone. 400 MW under development across subsidiaries.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-year">2025</div>
+          <div class="timeline-title">SCCL 1 GW renewable commitment</div>
+          <div class="timeline-desc">Singareni Collieries targeting 1 GW solar/wind to power all mine operations. CMM capture mandatory for new UG mines.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot outline"></div>
+          <div class="timeline-year">2030</div>
+          <div class="timeline-title">India NDC target — 45% emissions intensity</div>
+          <div class="timeline-desc">India committed to reducing GDP emission intensity by 45% from 2005 levels. Coal sector must achieve 30% intensity reduction.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot outline"></div>
+          <div class="timeline-year">2035</div>
+          <div class="timeline-title">Carbon credit market maturity</div>
+          <div class="timeline-desc">India's domestic carbon credit market (CCTS under Energy Conservation Amendment Act 2022) expected to be fully operational.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot outline"></div>
+          <div class="timeline-year">2070</div>
+          <div class="timeline-title">India net zero target</div>
+          <div class="timeline-desc">India's stated net zero commitment. Residual coal emissions to be offset through forestry, DAC and CCUS technology.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">Regulatory framework</div>
+        <div class="card-sub">Key rules governing mine emissions in India</div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(92,122,107,0.1);">📋</div>
+          <div>
+            <div class="factor-title">Environment Clearance (EC) conditions</div>
+            <div class="factor-source">MoEFCC EIA Notification 2006 — mandatory GHG reporting and tree plantation for all mines &gt;1 MTPA</div>
+          </div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(24,95,165,0.1);">⚡</div>
+          <div>
+            <div class="factor-title">PAT Scheme — Cycle VI onwards</div>
+            <div class="factor-source">Bureau of Energy Efficiency — coal mines consuming &gt;30,000 toe/year are Designated Consumers</div>
+          </div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(196,121,58,0.1);">🏭</div>
+          <div>
+            <div class="factor-title">CCTS — Carbon Credit Trading Scheme</div>
+            <div class="factor-source">Energy Conservation Amendment Act 2022 — India's domestic voluntary + compliance carbon market</div>
+          </div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-icon" style="background:rgba(29,158,117,0.1);">💨</div>
+          <div>
+            <div class="factor-title">CMM Rules 2022</div>
+            <div class="factor-source">DGMS directive — coal mine methane drainage mandatory for underground mines &gt;300m depth</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <p>© 2024 Carbon Footprint Calculator for Indian Coal Mines. Calculations based on IPCC 2006, CEA, MoEFCC guidelines.</p>
+  <div class="footer-tags">
+    <span class="footer-tag">IPCC 2006</span>
+    <span class="footer-tag">CEA 2023</span>
+    <span class="footer-tag">MoEFCC</span>
+    <span class="footer-tag">BEE PAT</span>
+    <span class="footer-tag">CMPDI</span>
+  </div>
+</footer>
+
+</div>
+
+<script>
+// ── Tab switching ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).style.display = 'block';
+  event.currentTarget.classList.add('active');
+}
+
+// ── Slider update ──
+function updateSlider(el, labelId, fmt) {
+  const v = parseFloat(el.value);
+  document.getElementById(labelId).textContent = fmt(v);
+  const pct = ((v - el.min) / (el.max - el.min)) * 100;
+  el.style.setProperty('--pct', pct + '%');
+}
+
+// ── Number animation ──
+function animateNumber(el, to, decimals, duration) {
+  const start = parseFloat(el.dataset.val || 0);
+  el.dataset.val = to;
+  const startTime = performance.now();
+  function step(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const cur = start + (to - start) * ease;
+    el.textContent = cur.toFixed(decimals);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ── Donut chart ──
+const C = 2 * Math.PI * 54; // circumference ~339.3
+
+function updateDonut(parts, total) {
+  const ids = ['transport','equip','elec','gen','ch4','blast'];
+  let offset = 0;
+  ids.forEach((id, i) => {
+    const arc = document.getElementById('arc-' + id);
+    const pct = total > 0 ? parts[i] / total : 0;
+    const len = pct * C;
+    arc.style.strokeDasharray = len + ' ' + C;
+    arc.style.strokeDashoffset = -offset;
+    offset += len;
+    setTimeout(() => {
+      arc.style.transition = 'stroke-dasharray 0.8s cubic-bezier(0.22,1,0.36,1), stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1)';
+    }, 10);
+  });
+}
+
+// ── Main calculation ──
+function calculate() {
+  const excavation = parseFloat(document.getElementById('excavation').value) || 0;
+  const overburden = parseFloat(document.getElementById('overburden').value) || 0;
+  const transport = parseFloat(document.getElementById('transport').value) || 0;
+  const trucks = parseFloat(document.getElementById('trucks').value) || 0;
+  const equipment = parseFloat(document.getElementById('equipment').value) || 0;
+  const generators = parseFloat(document.getElementById('generators').value) || 0;
+  const electricity = parseFloat(document.getElementById('electricity').value) || 0;
+  const mineType = document.getElementById('mineType').value;
+  const gradeF = parseFloat(document.getElementById('coalGrade').value);
+
+  // Emission calculations
+  const litresTransport = trucks * transport * 0.35;
+  const co2Transport = litresTransport * 2.68;
+
+  const litresEquip = equipment * 6 * 35;
+  const co2Equip = litresEquip * 2.68;
+
+  const co2Elec = electricity * 0.82;
+
+  const litresGen = generators * 500 * 0.7 * 0.21 * 24;
+  const co2Gen = litresGen * 2.68;
+
+  const ch4M3 = mineType === 'underground' ? 7 : 0.3;
+  const co2Ch4 = excavation * ch4M3 * gradeF * 0.0007168 * 28;
+
+  const co2Blast = overburden * 0.25 * 0.27;
+
+  const total = co2Transport + co2Equip + co2Elec + co2Gen + co2Ch4 + co2Blast;
+  const totalT = total / 1000;
+  const annual = totalT * 365;
+  const intensity = excavation > 0 ? (total / excavation) : 0;
+
+  // Rating
+  let rating = 'good', ratingText = 'Good performance', ratingIcon = '↓';
+  if (mineType === 'underground') {
+    if (intensity > 80) { rating = 'bad'; ratingText = 'High emission'; ratingIcon = '↑↑'; }
+    else if (intensity > 40) { rating = 'med'; ratingText = 'Average performance'; ratingIcon = '~'; }
+  } else {
+    if (intensity > 22) { rating = 'bad'; ratingText = 'High emission'; ratingIcon = '↑↑'; }
+    else if (intensity > 10) { rating = 'med'; ratingText = 'Average performance'; ratingIcon = '~'; }
+  }
+
+  const vs = mineType === 'underground' ? 55 : 16;
+  const vsText = ((intensity - vs) / vs * 100).toFixed(0);
+
+  // Show results
+  document.getElementById('placeholder').style.display = 'none';
+  const panel = document.getElementById('results-panel');
+  panel.classList.add('visible');
+
+  // Hero
+  const hero = document.getElementById('result-hero');
+  hero.className = 'result-hero ' + rating;
+
+  animateNumber(document.getElementById('result-main'), totalT, 1, 600);
+  document.getElementById('badge-annual').textContent = annual.toFixed(0);
+  document.getElementById('badge-intensity').textContent = intensity.toFixed(1);
+  document.getElementById('badge-rating').textContent = ratingIcon + ' ' + ratingText;
+
+  // Metrics
+  const fmt = v => (v/1000).toFixed(2);
+  animateNumber(document.getElementById('m-transport'), co2Transport/1000, 2, 600);
+  animateNumber(document.getElementById('m-equip'), co2Equip/1000, 2, 600);
+  animateNumber(document.getElementById('m-elec'), co2Elec/1000, 2, 600);
+  animateNumber(document.getElementById('m-ch4'), co2Ch4/1000, 2, 600);
+
+  // Header stats
+  document.getElementById('hdr-total').textContent = totalT.toFixed(1);
+  document.getElementById('hdr-intensity').textContent = intensity.toFixed(1);
+
+  // Bars & legend
+  const parts = [co2Transport, co2Equip, co2Elec, co2Gen, co2Ch4, co2Blast];
+  const ids = ['transport','equip','elec','gen','ch4','blast'];
+  const max = Math.max(...parts, 1);
+  parts.forEach((v, i) => {
+    const id = ids[i];
+    const pct = (v / total * 100).toFixed(1);
+    setTimeout(() => {
+      document.getElementById('bar-' + id).style.width = (v/max*100).toFixed(1) + '%';
+    }, 100);
+    document.getElementById('bv-' + id).textContent = (v/1000).toFixed(2) + ' t';
+    document.getElementById('lv-' + id).textContent = (v/1000).toFixed(2) + 't';
+    document.getElementById('lp-' + id).textContent = pct + '%';
+  });
+
+  // Donut
+  document.getElementById('donut-total').textContent = totalT.toFixed(1);
+  updateDonut(parts, total);
+}
+
+// Init slider
+(function() {
+  const el = document.getElementById('electricity');
+  const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
+  el.style.setProperty('--pct', pct + '%');
+})();
+
+// Auto-calculate on load
+calculate();
+</script>
+</body>
+</html>
