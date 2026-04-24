@@ -740,10 +740,10 @@ footer p { font-size: 12px; color: var(--text-muted); }
             <label>Coal grade</label>
             <div class="input-wrap">
               <select id="coalGrade" onchange="calculate()">
-                <option value="1.15">Grade A — high calorific</option>
-                <option value="1.0" selected>Grade B — standard</option>
-                <option value="0.88">Grade C</option>
-                <option value="0.75">Grade D — low calorific</option>
+                <option value="1.15">Grade A — high calorific (+15%)</option>
+                <option value="1.0" selected>Grade B — standard (baseline)</option>
+                <option value="0.88">Grade C (−12%)</option>
+                <option value="0.75">Grade D — low calorific (−25%)</option>
               </select>
               <div class="select-arrow">
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1236,21 +1236,25 @@ function calculate() {
   const gradeF = parseFloat(document.getElementById('coalGrade').value);
 
   // Emission calculations
-  const litresTransport = trucks * transport * 0.35;
+  // gradeF scales all activity-based emissions: higher grade coal requires more
+  // drilling, blasting and haulage effort per tonne of run-of-mine material.
+  // Grade A (1.15) = harder seams, more passes → +15% vs Grade B baseline.
+  // Grade D (0.75) = softer/shallow seams, less effort → -25%.
+  const litresTransport = trucks * transport * 0.35 * gradeF;
   const co2Transport = litresTransport * 2.68;
 
-  const litresEquip = equipment * 6 * 35;
+  const litresEquip = equipment * 6 * 35 * gradeF;
   const co2Equip = litresEquip * 2.68;
 
-  const co2Elec = electricity * 0.82;
+  const co2Elec = electricity * 0.82 * gradeF;
 
-  const litresGen = generators * 500 * 0.7 * 0.21 * 24;
+  const litresGen = generators * 500 * 0.7 * 0.21 * 24 * gradeF;
   const co2Gen = litresGen * 2.68;
 
   const ch4M3 = mineType === 'underground' ? 7 : 0.3;
   const co2Ch4 = excavation * ch4M3 * gradeF * 0.0007168 * 28;
 
-  const co2Blast = overburden * 0.25 * 0.27;
+  const co2Blast = overburden * 0.25 * 0.27 * gradeF;
 
   const total = co2Transport + co2Equip + co2Elec + co2Gen + co2Ch4 + co2Blast;
   const totalT = total / 1000;
